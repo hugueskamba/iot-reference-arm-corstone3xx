@@ -26,9 +26,11 @@ target_link_libraries(provisioning_data PRIVATE
 add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/aws_clientcredential_keys.h
     DEPENDS ${AWS_CLIENT_PRIVATE_KEY_PEM_PATH}
     DEPENDS ${AWS_CLIENT_CERTIFICATE_PEM_PATH}
-    COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/generate_credentials_header.py
-                                    --client_private_key_pem ${AWS_CLIENT_PRIVATE_KEY_PEM_PATH}
-                                    --client_certificate_pem ${AWS_CLIENT_CERTIFICATE_PEM_PATH}
+    COMMAND
+        ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/generate_credentials_header.py
+            ${CMAKE_CURRENT_BINARY_DIR}
+            --path-to-client-private-key-pem ${AWS_CLIENT_PRIVATE_KEY_PEM_PATH}
+            --path-to-client-certificate-pem ${AWS_CLIENT_CERTIFICATE_PEM_PATH}
 )
 
 add_custom_target(aws_clientcredential_keys_header
@@ -49,7 +51,7 @@ else()
     target_add_scatter_file(provisioning_data ${CMAKE_CURRENT_SOURCE_DIR}/provisioning_data.sct)
 endif()
 
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/Tools/cmake)
+list(APPEND CMAKE_MODULE_PATH ${IOT_REFERENCE_ARM_CORSTONE3XX_SOURCE_DIR}/Tools/cmake)
 include(ConvertElfToBin)
 
 add_custom_command(OUTPUT provisioning_data.bin
