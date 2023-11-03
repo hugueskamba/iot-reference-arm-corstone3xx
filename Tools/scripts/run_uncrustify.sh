@@ -4,4 +4,4 @@
 # <open-source-office@arm.com>
 # SPDX-License-Identifier: MIT
 
-find Projects -iname "*.[hc]" -exec uncrustify --check -c tools/uncrustify.cfg {} +
+find applications -iname "*.[hc]" -exec uncrustify --check -c tools/uncrustify.cfg {} +
