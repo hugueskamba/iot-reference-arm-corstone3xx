@@ -1,0 +1,10 @@
+Starting bootloader
+Waiting for provisioning bundle
+Running provisioning bundle
+Booting TF-M v1.8.1
+PSA Framework version is: 257
+Application version from appFirmwareVersion 0.0.10
+Init speex
+ML interface initialised
+Complete recognition: turn down the temperature in the bedroom
+Application version from appFirmwareVersion 0.0.20
