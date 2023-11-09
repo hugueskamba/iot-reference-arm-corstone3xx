@@ -9,6 +9,7 @@ ROOT="$(realpath $HERE/../..)"
 EXAMPLE=""
 BUILD_PATH="build"
 TARGET="corstone310"
+AUDIO_SOURCE="ROM"
 FVP_TYPE="fvp"
 FVP_BIN=""
 
@@ -27,12 +28,12 @@ Options:
     -f, --fvp_type  FVP type to use (fvp, vht)
 
 Examples:
-    blinky, aws-iot-example
+    blinky, aws-iot-example, keyword-detection
 EOF
 }
 
-SHORT=t:,f:,h
-LONG=target:,fvp_type:,help
+SHORT=t:,f:,s:,h
+LONG=target:,fvp_type:,audio:,help
 OPTS=$(getopt -n run --options $SHORT --longoptions $LONG -- "$@")
 
 eval set -- "$OPTS"
@@ -50,6 +51,10 @@ do
       ;;
     -f | --fvp_type )
       FVP_TYPE=$2
+      shift 2
+      ;;
+    -s | --audio )
+      AUDIO_SOURCE=$2
       shift 2
       ;;
     --)
@@ -103,10 +108,24 @@ case "$1" in
         EXAMPLE="$1"
         MERGED_IMAGE_PATH="$BUILD_PATH/aws-iot-example_merged.elf"
         ;;
+    keyword-detection)
+        EXAMPLE="$1"
+        MERGED_IMAGE_PATH="$BUILD_PATH/keyword-detection_merged.elf"
+        ;;
     *)
-        echo "Usage: $0 <blinky,aws-iot-example>" >&2
+        echo "Usage: $0 <blinky,aws-iot-example,keyword-detection>" >&2
         exit 1
         ;;
+esac
+
+case "$AUDIO_SOURCE" in
+    ROM )
+      ;;
+    *)
+      echo "Invalid audio source <ROM>"
+      show_usage
+      exit 2
+      ;;
 esac
 
 OPTIONS="-C mps3_board.visualisation.disable-visualisation=1 \
