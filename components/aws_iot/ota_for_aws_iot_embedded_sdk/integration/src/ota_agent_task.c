@@ -71,6 +71,9 @@
 /* Include platform abstraction header. */
 #include "ota_pal.h"
 
+extern void OTA_Not_Active_Hook( void );
+extern void OTA_Active_Hook( void );
+
 /*------------- Demo configurations -------------------------*/
 
 /**
@@ -563,6 +566,32 @@ static void otaAppCallback( OtaJobEvent_t event,
         default:
             LogWarn( ( "Received an unhandled callback event from OTA Agent, event = %d", event ) );
 
+            break;
+    }
+
+    OtaState_t state = OTA_GetState();
+
+    switch( state )
+    {
+        case OtaAgentStateNoTransition:
+        case OtaAgentStateInit:
+        case OtaAgentStateReady:
+        case OtaAgentStateSuspended:
+        case OtaAgentStateShuttingDown:
+        case OtaAgentStateStopped:
+        case OtaAgentStateWaitingForJob:
+            OTA_Not_Active_Hook();
+            break;
+
+        case OtaAgentStateRequestingJob:
+        case OtaAgentStateCreatingFile:
+        case OtaAgentStateRequestingFileBlock:
+        case OtaAgentStateWaitingForFileBlock:
+        case OtaAgentStateClosingFile:
+            OTA_Active_Hook();
+            break;
+
+        default:
             break;
     }
 }

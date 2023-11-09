@@ -73,6 +73,16 @@ static bool xAreAwsCredentialsValid( void )
     return true;
 }
 
+void OTA_Active_Hook(void)
+{
+    // This function can be used in case an action is required when the OTA is active
+}
+
+void OTA_Not_Active_Hook(void)
+{
+    // This function can be used in case an action is required when the OTA is not active
+}
+
 void vAssertCalled( const char * pcFile,
                     unsigned long ulLine )
 {
