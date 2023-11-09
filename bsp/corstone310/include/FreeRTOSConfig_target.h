@@ -25,6 +25,6 @@
  * per second instead of using the macro defined in
  * `FreeRTOS-kernel/include/projdefs.h`
  */
-#define configTICK_RATE_HZ    ( ( uint32_t ) 60 )
+#define configTICK_RATE_HZ    ( ( uint32_t ) 300 )
 #define pdMS_TO_TICKS( xTimeInMs )    ( ( TickType_t ) xTimeInMs )
 #define TICKS_TO_pdMS( xTicks )       ( ( uint32_t ) xTicks )
