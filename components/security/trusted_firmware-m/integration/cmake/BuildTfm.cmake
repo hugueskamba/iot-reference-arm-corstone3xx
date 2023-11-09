@@ -54,6 +54,9 @@ ExternalProject_Add(
     PATCH_COMMAND
         ${TFM_PATCH_COMMAND}
 
+    COMMAND
+        ${TFM_COMMAND}
+
     BUILD_BYPRODUCTS
         ${tfm_ns_interface_generated}
         ${s_veneers_generated}
