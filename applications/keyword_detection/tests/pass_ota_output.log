@@ -1,0 +1,14 @@
+Starting bootloader
+Waiting for provisioning bundle
+Running provisioning bundle
+Booting TF-M v1.8.1
+PSA Framework version is: 257
+Application version from appFirmwareVersion 0.0.10
+ML interface initialised
+ML_HEARD_ON
+ML UNKNOWN
+ML_HEARD_OFF
+ML UNKNOWN
+ML_HEARD_GO
+ML UNKNOWN
+Application version from appFirmwareVersion 0.0.20
