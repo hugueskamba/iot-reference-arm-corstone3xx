@@ -43,16 +43,16 @@
  * Stack size is capped to an minimal value. Task priority of Blink is set to a priority
  * lower than other ML task.
  */
-#define appCONFIG_BLINK_TASK_STACK_SIZE              ( configMINIMAL_STACK_SIZE )
-#define appCONFIG_BLINK_TASK_PRIORITY                ( tskIDLE_PRIORITY + 1 )
+#define appCONFIG_BLINK_TASK_STACK_SIZE             ( configMINIMAL_STACK_SIZE )
+#define appCONFIG_BLINK_TASK_PRIORITY               ( tskIDLE_PRIORITY + 1 )
 
 
-#define appCONFIG_ML_TASK_STACK_SIZE                 ( 8192 )
-#define appCONFIG_ML_TASK_PRIORITY                   ( tskIDLE_PRIORITY + 2 )
+#define appCONFIG_ML_TASK_STACK_SIZE                ( 8192 )
+#define appCONFIG_ML_TASK_PRIORITY                  ( tskIDLE_PRIORITY + 2 )
 
 
-#define appCONFIG_ML_MQTT_TASK_STACK_SIZE            ( configMINIMAL_STACK_SIZE )
-#define appCONFIG_ML_MQTT_TASK_PRIORITY              ( tskIDLE_PRIORITY + 2 )
+#define appCONFIG_ML_MQTT_TASK_STACK_SIZE           ( configMINIMAL_STACK_SIZE )
+#define appCONFIG_ML_MQTT_TASK_PRIORITY             ( tskIDLE_PRIORITY + 2 )
 
 
 /** @brief Increase backoff algorithm timeout by 8 seconds when device advisor

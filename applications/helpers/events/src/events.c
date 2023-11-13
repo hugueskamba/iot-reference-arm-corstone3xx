@@ -13,7 +13,7 @@ int32_t xEventHelperInit( void )
 {
     /* Create a system events group. */
     xSystemEvents = xEventGroupCreateStatic( &xSystemEventsGroup );
-    return (xSystemEvents == NULL)? -1 : 0;
+    return ( xSystemEvents == NULL ) ? -1 : 0;
 }
 
 void vWaitUntilNetworkIsUp( void )

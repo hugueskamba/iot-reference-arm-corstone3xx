@@ -10,10 +10,10 @@
 
 /* Size of secure partition */
 #undef FLASH_S_PARTITION_SIZE
-#define FLASH_S_PARTITION_SIZE 0x40000
+#define FLASH_S_PARTITION_SIZE    0x40000
 
 /* Size of non-secure partition */
 #undef FLASH_NS_PARTITION_SIZE
-#define FLASH_NS_PARTITION_SIZE 0x340000
+#define FLASH_NS_PARTITION_SIZE    0x340000
 
 #endif /* __CONFIG_TFM_TARGET_H__ */

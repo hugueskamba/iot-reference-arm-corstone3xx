@@ -4,20 +4,31 @@
  */
 
 #ifndef BLINK_TASK_H
-#define BLINK_TASK_H
+    #define BLINK_TASK_H
 
-#include <stdint.h>
+    #include <stdint.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+    #ifdef __cplusplus
+    extern "C" {
+    #endif
 
-/* Blinks LEDs according the ML model state.
+/**
+ * @brief Create blink task.
  */
-void blink_task(void *arg);
+    void vStartBlinkTask( void );
 
-#ifdef __cplusplus
-}
-#endif
+/**
+ * @brief Blinks LEDs according to ML processing.
+ *
+ *        LED1 ON and LED2 OFF       => heard YES
+ *        LED1 OFF and LED2 OFF      => heard NO
+ *        LED1 OFF and LED2 blinking => no/unknown input
+ * @param pvParameters Contextual data for the task.
+ */
+    void blink_task( void * pvParameters );
+
+    #ifdef __cplusplus
+    }
+    #endif
 
 #endif /* ! BLINK_TASK_H*/

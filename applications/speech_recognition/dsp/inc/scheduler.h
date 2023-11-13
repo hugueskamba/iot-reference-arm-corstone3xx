@@ -1,28 +1,34 @@
-/* Copyright (c) 2022, Arm Limited and Contributors. All rights reserved.
- * SPDX-License-Identifier: Apache-2.0
+/* Copyright 2022-2023 Arm Limited and/or its affiliates
+ * <open-source-office@arm.com>
+ * SPDX-License-Identifier: MIT
  */
+
 /*
+ *
+ * Generated with CMSIS-DSP SDF Scripts.
+ * The generated code is not covered by CMSIS-DSP license.
+ *
+ * The support classes and code is covered by CMSIS-DSP license.
+ *
+ */
 
-Generated with CMSIS-DSP SDF Scripts.
-The generated code is not covered by CMSIS-DSP license.
+#ifndef _SCHED_H_
+    #define _SCHED_H_
 
-The support classes and code is covered by CMSIS-DSP license.
+    #include "queue.h"
 
-*/
+    #ifdef   __cplusplus
+        extern "C"
+        {
+    #endif
 
-#ifndef _SCHED_H_ 
-#define _SCHED_H_
+    extern uint32_t scheduler( int * error,
+                               DspAudioSource * dspAudio,
+                               DSPML * dspMLConnection,
+                               QueueHandle_t queue );
 
-#ifdef   __cplusplus
-extern "C"
-{
-#endif
+    #ifdef   __cplusplus
+    }
+    #endif
 
-extern uint32_t scheduler(int *error,DspAudioSource *dspAudio,DSPML *dspMLConnection,osMessageQueueId_t queue);
-
-#ifdef   __cplusplus
-}
-#endif
-
-#endif
-
+#endif /* ifndef _SCHED_H_ */

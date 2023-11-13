@@ -13,4 +13,3 @@ typedef int32_t spx_int32_t;
 typedef uint32_t spx_uint32_t;
 
 #endif
-

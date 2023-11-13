@@ -32,7 +32,7 @@ ExternalProject_Add(
 
     PATCH_COMMAND
         ${ML_PATCH_COMMAND}
-    
+
     BUILD_COMMAND
         ${CMAKE_COMMAND} --build <BINARY_DIR> --target ${ML_TARGETS}
 )

@@ -229,7 +229,7 @@ CK_RV xDestroyDefaultCryptoObjects( CK_SESSION_HANDLE xSession );
  *   Otherwise, a positive PKCS #11 error code.
  */
 CK_RV xDestroyProvidedObjects( CK_SESSION_HANDLE xSession,
-                               CK_BYTE_PTR * ppxPkcsLabels,
+                               const CK_BYTE_PTR * ppxPkcsLabels,
                                CK_OBJECT_CLASS * pxClass,
                                CK_ULONG ulCount );
 

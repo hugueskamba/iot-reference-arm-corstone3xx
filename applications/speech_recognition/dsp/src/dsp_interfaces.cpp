@@ -1,40 +1,52 @@
-/* Copyright (c) 2022-2023, Arm Limited and Contributors. All rights reserved.
- * SPDX-License-Identifier: Apache-2.0
+/* Copyright 2022-2023 Arm Limited and/or its affiliates
+ * <open-source-office@arm.com>
+ * SPDX-License-Identifier: MIT
  */
 
+#include "FreeRTOS.h"
+#include "log_macros.h"
 #include "dsp_interfaces.h"
 #include "audio_config.h"
 #include "model_config.h"
-#include "print_log.h"
+#include "task.h"
 
 #include <cstddef>
 #include <cstdint>
 #include <cstdlib>
-// For memcpy
 #include <cstring>
 
 extern "C" {
-#include "mbed_critical/mbed_critical.h"
+/* Include header that defines log levels. */
+#include "logging_levels.h"
+
+/* Configure name and log level. */
+#ifndef LIBRARY_LOG_NAME
+    #define LIBRARY_LOG_NAME     "DSP"
+#endif
+#ifndef LIBRARY_LOG_LEVEL
+    #define LIBRARY_LOG_LEVEL    LOG_INFO
+#endif
+#include "logging_stack.h"
 }
 
 static float audio_timestamp = 0.0;
 
 void set_audio_timestamp(float timestamp) {
-    core_util_critical_section_enter();
+    taskENTER_CRITICAL();
     audio_timestamp = timestamp;
-    core_util_critical_section_exit();
+    taskEXIT_CRITICAL();
 }
 
 float get_audio_timestamp() {
-    core_util_critical_section_enter();
+    taskENTER_CRITICAL();
     float timestamp = audio_timestamp;
-    core_util_critical_section_exit();
+    taskEXIT_CRITICAL();
     return timestamp;
 }
 
 DspAudioSource::DspAudioSource(const int16_t* audiobuffer, size_t block_count ):
         block_count{block_count},
-        audiobuffer{audiobuffer} 
+        audiobuffer{audiobuffer}
 {
 
 }
@@ -46,63 +58,63 @@ const int16_t *DspAudioSource::getCurrentBuffer()
     current_block = (current_block + 1) % block_count;
 #endif
 
-    return(audiobuffer+this->current_block*(AUDIO_BLOCK_SIZE/2));
+    return(audiobuffer + current_block*(AUDIO_BLOCK_SIZE/2));
 }
 
 #ifdef AUDIO_VSI
 
 void DspAudioSource::waitForNewBuffer()
 {
-    osSemaphoreAcquire(this->semaphore, osWaitForever);
+    xSemaphoreTake( semaphore, portMAX_DELAY );
 }
 
 void DspAudioSource::new_audio_block_received(void* ptr)
 {
     auto* self = reinterpret_cast<DspAudioSource*>(ptr);
-    
+
     // Update block ID
     self->current_block = self->block_under_write;
     self->block_under_write = ((self->block_under_write + 1) % self->block_count);
 
     // Wakeup task waiting
-    osSemaphoreRelease(self->semaphore);
+    xSemaphoreGiveFromISR(semaphore);
 };
 
 #endif
 
-static bool dspml_lock(osMutexId_t ml_fifo_mutex)
+static bool dspml_lock(SemaphoreHandle_t ml_fifo_mutex)
 {
-    bool success = false;
-    if ( ml_fifo_mutex ) {
-        if (osMutexAcquire(ml_fifo_mutex, osWaitForever) == osOK ) {
-            success = true;
-        }
-        else {
-            ERR_LOG( "Failed to acquire ml_fifo_mutex" );
-        }
+    if ( ml_fifo_mutex == NULL ) {
+        return false;
     }
-    return success;
+
+    if ( xSemaphoreTake( ml_fifo_mutex, portMAX_DELAY ) != pdTRUE ) {
+        LogError( ( "Failed to acquire ml_fifo_mutex" ) );
+        return false;
+    }
+
+    return true;
 }
 
-static bool dspml_unlock(osMutexId_t ml_fifo_mutex)
+static bool dspml_unlock(SemaphoreHandle_t ml_fifo_mutex)
 {
-    bool success = false;
-    if ( ml_fifo_mutex ) {
-        if (osMutexRelease( ml_fifo_mutex ) == osOK ) {
-            success = true;
-        }
-        else {
-            ERR_LOG( "Failed to release ml_fifo_mutex" );
-        }
+    if ( ml_fifo_mutex == NULL ) {
+        return false;
     }
-    return success;
+
+    if ( xSemaphoreGive( ml_fifo_mutex ) != pdTRUE ) {
+        LogError( ( "Failed to release ml_fifo_mutex" ) );
+        return false;
+    }
+
+    return true;
 }
 
 
 DSPML::DSPML(size_t bufferLengthInSamples ):nbSamples(bufferLengthInSamples)
 {
-    bufferA=(int16_t*)malloc(bufferLengthInSamples*sizeof(int16_t));
-    bufferB=(int16_t*)malloc(bufferLengthInSamples*sizeof(int16_t));
+    bufferA=static_cast<int16_t*>(malloc(bufferLengthInSamples*sizeof(int16_t)));
+    bufferB=static_cast<int16_t*>(malloc(bufferLengthInSamples*sizeof(int16_t)));
 
     dspBuffer = bufferA;
     mlBuffer = bufferB;
@@ -116,34 +128,37 @@ DSPML::~DSPML()
 
 void DSPML::copyToDSPBufferFrom(int16_t * buf)
 {
-    dspml_lock(this->mutex);
+    dspml_lock(mutex);
     memcpy(dspBuffer,buf,sizeof(int16_t)*nbSamples);
-    dspml_unlock(this->mutex);
+    dspml_unlock(mutex);
 
 }
 
 void DSPML::copyFromMLBufferInto(int16_t * buf)
 {
-    dspml_lock(this->mutex);
+    dspml_lock(mutex);
     memcpy(buf,mlBuffer,sizeof(int16_t)*nbSamples);
-    dspml_unlock(this->mutex);
+    dspml_unlock(mutex);
 }
 
 void DSPML::swapBuffersAndWakeUpMLThread()
 {
     int16_t* tmp;
 
-    dspml_lock(this->mutex);
+    dspml_lock(mutex);
     tmp=dspBuffer;
     dspBuffer=mlBuffer;
     mlBuffer=tmp;
-    dspml_unlock(this->mutex);
+    dspml_unlock(mutex);
 
-    osSemaphoreRelease(this->semaphore);
+    BaseType_t yield = pdFALSE;
+    if (xSemaphoreGiveFromISR(semaphore, &yield) == pdTRUE)
+    {
+        portYIELD_FROM_ISR (yield);
+    }
 }
 
 void DSPML::waitForDSPData()
 {
-    osSemaphoreAcquire(this->semaphore, osWaitForever);
+    xSemaphoreTake( semaphore, portMAX_DELAY );
 }
-

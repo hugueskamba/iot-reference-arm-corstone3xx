@@ -1,13 +1,19 @@
-/* Copyright (c) 2022, Arm Limited and Contributors. All rights reserved.
- * SPDX-License-Identifier: Apache-2.0
+/* Copyright 2022-2023 Arm Limited and/or its affiliates
+ * <open-source-office@arm.com>
+ * SPDX-License-Identifier: MIT
  */
 
+/*
+Generated with CMSIS-DSP SDF Scripts.
+*/
+
+#include "FreeRTOS.h"
 #include "arm_math.h"
 #include "dsp_task.h"
 #include "GenericNodes.h"
 #include "AppNodes.h"
 #include "scheduler.h"
-#include "cmsis_os2.h"
+#include "task.h"
 
 /***********
 FIFO buffers
@@ -25,16 +31,20 @@ int16_t buf1[BUFFERSIZE1]={0};
 #define BUFFERSIZE2 47360
 int16_t buf2[BUFFERSIZE2]={0};
 
-uint32_t scheduler(int *error,DspAudioSource *dspAudio,DSPML *dspMLConnection,osMessageQueueId_t queue)
-{
-// Define CHECKERROR_OR_PAUSE 
-// This updated version of CHECKERROR verify if the task must be stopped or not 
+uint32_t scheduler(
+    int *error,
+    DspAudioSource *dspAudio,
+    DSPML *dspMLConnection,
+    QueueHandle_t queue
+) {
+// Define CHECKERROR_OR_PAUSE
+// This updated version of CHECKERROR verify if the task must be stopped or not
 #define CHECKERROR_OR_PAUSE \
     if (sdfError < 0) {\
          break; \
     } else { \
         dsp_msg_t msg;\
-        if (osMessageQueueGet(queue, &msg, /*priority*/ 0, /*timeout*/ 0) == osOK ) { \
+        if (xQueueReceive (queue, &msg, 0) == pdPASS) { \
             if (msg.event == DSP_EVENT_STOP) { \
                 break; \
             } \
@@ -50,7 +60,7 @@ uint32_t scheduler(int *error,DspAudioSource *dspAudio,DSPML *dspMLConnection,os
     FIFO<int16_t,FIFOSIZE1,0> fifo1(buf1);
     FIFO<int16_t,FIFOSIZE2,1> fifo2(buf2);
 
-    /* 
+    /*
     Create node objects
     */
     SlidingBuffer<int16_t,47360,31360> audioWin(fifo1,fifo2);
@@ -191,7 +201,7 @@ uint32_t scheduler(int *error,DspAudioSource *dspAudio,DSPML *dspMLConnection,os
 
        // Add delay of 50 ticks to allow some time for the connectivity task
        // to send and receive messages to and from the cloud.
-       osDelay(50);
+       vTaskDelay(50);
     }
     *error=sdfError;
     return(nbSchedule);

@@ -1,16 +1,33 @@
-/* Copyright (c) 2021-2023, Arm Limited and Contributors. All rights reserved.
- * SPDX-License-Identifier: Apache-2.0
+/* Copyright 2021-2023 Arm Limited and/or its affiliates
+ * <open-source-office@arm.com>
+ * SPDX-License-Identifier: MIT
  */
 
+#include "FreeRTOS.h"
 #include "blink_task.h"
-#include "cmsis_os2.h"
 #include "mps3_leds.h"
+#include "log_macros.h"
+#include "task.h"
 
+#include <stdbool.h>
 #include <stdio.h>
 
-#define BLINK_TIMER_PERIOD_MS 250
+/* Include header that defines log levels. */
+#include "logging_levels.h"
 
-enum {
+/* Configure name and log level. */
+#ifndef LIBRARY_LOG_NAME
+    #define LIBRARY_LOG_NAME     "Blink"
+#endif
+#ifndef LIBRARY_LOG_LEVEL
+    #define LIBRARY_LOG_LEVEL    LOG_INFO
+#endif
+#include "logging_stack.h"
+
+#define BLINK_TIMER_PERIOD_MS    250
+
+enum
+{
     LED1 = 1 << 0,
     LED2 = 1 << 1,
     LED3 = 1 << 2,
@@ -25,36 +42,50 @@ enum {
     LED_ALL = 0xFF
 };
 
-/*
- * Main task.
- *
- * Blinks LEDs according to ML processing.
- *
- * LED1 on and LED2 off       => heard YES
- * LED1 off and LED2 off      => heard NO
- * LED1 off and LED2 blinking => no/unknown input
- */
-void blink_task(void *arg)
+
+void vStartBlinkTask( void )
 {
-    (void)arg;
+    if(
+        xTaskCreate(
+            blink_task,
+            "BLINK_TASK ",
+            appCONFIG_BLINK_TASK_STACK_SIZE,
+            NULL,
+            appCONFIG_BLINK_TASK_PRIORITY,
+            NULL
+            ) != pdPASS
+        )
+    {
+        LogError( ( "Failed to create Blink Task\r\n" ) );
+    }
+}
 
-    printf("Blink task started\r\n");
+void blink_task( void * pvParameters )
+{
+    ( void ) pvParameters;
 
-    if (mps3_leds_turn_off(LED_ALL) != true) {
-        printf("Failed to turn all LEDs off\r\n");
+    LogInfo( ( "Blink task started\r\n" ) );
+
+    if( mps3_leds_turn_off( LED_ALL ) != true )
+    {
+        LogError( ( "Failed to turn all LEDs off\r\n" ) );
         return;
     }
 
-    const uint32_t ticks_interval = BLINK_TIMER_PERIOD_MS * osKernelGetTickFreq() / 1000;
-    while (1) {
-        osStatus_t status = osDelay(ticks_interval);
-        if (status != osOK) {
-            printf("osDelay() failed: %d\r\n", status);
+    const uint32_t ticks_interval = BLINK_TIMER_PERIOD_MS * configTICK_RATE_HZ / 1000;
+
+    while( 1 )
+    {
+        if( ticks_interval == 0U )
+        {
             return;
         }
 
-        if (mps3_leds_toggle(LED_ALIVE) != true) {
-            printf("Failed to toggle LED_ALIVE\r\n");
+        vTaskDelay( ticks_interval );
+
+        if( mps3_leds_toggle( LED_ALIVE ) != true )
+        {
+            LogError( ( "Failed to toggle LED_ALIVE\r\n" ) );
             return;
         }
     }

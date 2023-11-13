@@ -4,20 +4,20 @@
  */
 
 #ifndef BLINK_TASK_H
-#define BLINK_TASK_H
+    #define BLINK_TASK_H
 
-#include <stdint.h>
+    #include <stdint.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+    #ifdef __cplusplus
+    extern "C" {
+    #endif
 
 /* Blinks LEDs according the ML model state.
  */
-void blink_task(void *arg);
+    void blink_task( void * arg );
 
-#ifdef __cplusplus
-}
-#endif
+    #ifdef __cplusplus
+    }
+    #endif
 
 #endif /* ! BLINK_TASK_H*/

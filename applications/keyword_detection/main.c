@@ -35,7 +35,7 @@
  * The topic name starts with the client identifier to ensure that each demo
  * interacts with a unique topic name.
  */
-#define mqttexampleTOPIC democonfigCLIENT_IDENTIFIER "/ml/inference"
+#define mqttexampleTOPIC    democonfigCLIENT_IDENTIFIER "/ml/inference"
 
 /**
  * @brief The MQTT agent manages the MQTT contexts.  This set the handle to the
@@ -48,12 +48,12 @@ extern MQTTAgentContext_t xGlobalMqttAgentContext;
  * This involves receiving an acknowledgment for broker for SUBSCRIBE, UNSUBSCRIBE and non
  * QOS0 publishes.
  */
-#define appMQTT_TIMEOUT_MS                        ( 5000U )
+#define appMQTT_TIMEOUT_MS    ( 5000U )
 
 /**
  * @brief Used to clear bits in a task's notification value.
  */
-#define appMAX_UINT32                     ( 0xffffffff )
+#define appMAX_UINT32         ( 0xffffffff )
 
 static SemaphoreHandle_t xMqttMutex;
 
@@ -69,7 +69,8 @@ extern BaseType_t xStartPubSubTasks( uint32_t ulNumPubsubTasks,
 psa_key_handle_t xOTACodeVerifyKeyHandle = 0;
 EventGroupHandle_t xAppEvents = NULL;
 QueueHandle_t xMlMqttQueue = NULL;
-typedef struct {
+typedef struct
+{
     ml_processing_state_t state;
 } ml_mqtt_msg_t;
 
@@ -88,12 +89,15 @@ static bool xAreAwsCredentialsValid( void )
 
 static bool mqtt_lock()
 {
-    if (xMqttMutex == NULL) {
+    if( xMqttMutex == NULL )
+    {
         return false;
     }
 
     BaseType_t ret = xSemaphoreTake( xMqttMutex, portMAX_DELAY );
-    if (ret != pdTRUE) {
+
+    if( ret != pdTRUE )
+    {
         LogError( ( "xSemaphoreTake xMqttMutex failed %ld\r\n", ret ) );
         return false;
     }
@@ -103,13 +107,15 @@ static bool mqtt_lock()
 
 static bool mqtt_unlock()
 {
-
-    if (xMqttMutex == NULL) {
+    if( xMqttMutex == NULL )
+    {
         return false;
     }
 
     BaseType_t ret = xSemaphoreGive( xMqttMutex );
-    if (ret != pdPASS) {
+
+    if( ret != pdPASS )
+    {
         LogError( ( "xSemaphoreGive xMqttMutex failed %ld\r\n", ret ) );
         return false;
     }
@@ -128,9 +134,10 @@ static void prvAppPublishCommandCallback( MQTTAgentCommandContext_t * pxCommandC
     }
 }
 
-void mqtt_send_message(const char* message)
+void mqtt_send_message( const char * message )
 {
-    if ( !mqtt_lock() ) {
+    if( !mqtt_lock() )
+    {
         return;
     }
 
@@ -158,7 +165,7 @@ void mqtt_send_message(const char* message)
                                     &xCommandParams );
 
     /* Wait for command to complete so MQTTSubscribeInfo_t remains in scope for the
-    * duration of the command. */
+     * duration of the command. */
     if( mqttStatus == MQTTSuccess )
     {
         BaseType_t result = xTaskNotifyWait( 0, appMAX_UINT32, NULL, pdMS_TO_TICKS( appMQTT_TIMEOUT_MS ) );
@@ -188,12 +195,12 @@ void mqtt_send_message(const char* message)
 }
 
 
-void OTA_Active_Hook(void)
+void OTA_Active_Hook( void )
 {
     ml_task_inference_stop();
 }
 
-void OTA_Not_Active_Hook(void)
+void OTA_Not_Active_Hook( void )
 {
     ml_task_inference_start();
 }
@@ -201,13 +208,14 @@ void OTA_Not_Active_Hook(void)
 void vAssertCalled( const char * pcFile,
                     unsigned long ulLine )
 {
-    printf( "ASSERT failed! file %s:%ld, \n", pcFile, ulLine );
+    printf( "ASSERT failed! file %s:%lu, \n", pcFile, ulLine );
 
     taskENTER_CRITICAL();
     {
         /* Use the debugger to set ul to a non-zero value in order to step out
          *      of this function to determine why it was called. */
         volatile unsigned long looping = 0;
+
         while( looping == 0LU )
         {
             portNOP();
@@ -218,7 +226,7 @@ void vAssertCalled( const char * pcFile,
 
 BaseType_t xApplicationGetRandomNumber( uint32_t * pulNumber )
 {
-    return (BaseType_t)( psa_generate_random( ( uint8_t * ) ( pulNumber ), sizeof( uint32_t ) ) == PSA_SUCCESS );
+    return ( BaseType_t ) ( psa_generate_random( ( uint8_t * ) ( pulNumber ), sizeof( uint32_t ) ) == PSA_SUCCESS );
 }
 
 uint32_t ulApplicationGetNextSequenceNumber( uint32_t ulSourceAddress,
@@ -243,70 +251,84 @@ uint32_t ulApplicationGetNextSequenceNumber( uint32_t ulSourceAddress,
     return uxRandomValue;
 }
 
-int main(void)
+int main( void )
 {
     bsp_serial_init();
 
-    // TODO: See if this is also needed
+    /* TODO: See if this is also needed */
     xLoggingTaskInitialize( appCONFIG_LOGGING_TASK_STACK_SIZE,
                             appCONFIG_LOGGING_TASK_PRIORITY,
                             appCONFIG_LOGGING_MESSAGE_QUEUE_LENGTH );
 
     UBaseType_t status = tfm_ns_interface_init();
+
     if( status != 0 )
     {
         LogError( ( "TF-M non-secure interface init failed with [%d]. Exiting...\n", status ) );
         return EXIT_FAILURE;
     }
+
     LogInfo( ( "PSA Framework version is: %d\n", psa_framework_version() ) );
 
-    if (xEventHelperInit() != 0) {
+    if( xEventHelperInit() != 0 )
+    {
         return EXIT_FAILURE;
     }
 
-    (void)mbedtls_platform_set_calloc_free( mbedtls_platform_calloc, mbedtls_platform_free );
+    ( void ) mbedtls_platform_set_calloc_free( mbedtls_platform_calloc, mbedtls_platform_free );
 
     UBaseType_t xRetVal = vDevModeKeyProvisioning();
+
     if( xRetVal != CKR_OK )
     {
         LogError( ( "Device key provisioning failed [%d]\n", xRetVal ) );
         LogError( ( "Device cannot connect to IoT Core. Exiting...\n" ) );
         return EXIT_FAILURE;
     }
+
     LogInfo( ( "Device key provisioning succeeded \n" ) );
 
     status = ota_privision_code_signing_key( &xOTACodeVerifyKeyHandle );
+
     if( status != PSA_SUCCESS )
     {
         LogError( ( "OTA signing key provision failed [%d]\n", status ) );
     }
+
     LogInfo( ( "OTA signing key provisioning succeeded \n" ) );
 
     xMqttMutex = xSemaphoreCreateMutex();
-    if (xMqttMutex == NULL) {
+
+    if( xMqttMutex == NULL )
+    {
         LogError( ( "Failed to create xMqttMutex\r\n" ) );
         return EXIT_FAILURE;
     }
 
-    // The next initialisations are done as a part of the main
-    // function as these resources are shared between tasks
-    // and it is not guranteed that the task which initialise
-    // these resources will start first before the tasks using them.
+    /* The next initialisations are done as a part of the main */
+    /* function as these resources are shared between tasks */
+    /* and it is not guranteed that the task which initialise */
+    /* these resources will start first before the tasks using them. */
     xAppEvents = xEventGroupCreate();
-    if (xAppEvents == NULL) {
+
+    if( xAppEvents == NULL )
+    {
         LogError( ( "Failed to create xAppEvents\r\n" ) );
         return EXIT_FAILURE;
     }
-    xMlMqttQueue = xQueueCreate(20, sizeof(ml_mqtt_msg_t));
-    if (xMlMqttQueue == NULL) {
+
+    xMlMqttQueue = xQueueCreate( 20, sizeof( ml_mqtt_msg_t ) );
+
+    if( xMlMqttQueue == NULL )
+    {
         LogError( ( "Failed to create xMlMqttQueue\r\n" ) );
         return EXIT_FAILURE;
     }
 
     mbedtls_threading_set_alt( mbedtls_platform_mutex_init,
-                                mbedtls_platform_mutex_free,
-                                mbedtls_platform_mutex_lock,
-                                mbedtls_platform_mutex_unlock );
+                               mbedtls_platform_mutex_free,
+                               mbedtls_platform_mutex_lock,
+                               mbedtls_platform_mutex_unlock );
 
     if( xAreAwsCredentialsValid() == true )
     {
@@ -337,12 +359,12 @@ int main(void)
     vTaskStartScheduler();
 
     /* If all is well, the scheduler will now be running, and the following
-    * line will never be reached.  If the following line does execute, then
-    * there was insufficient FreeRTOS heap memory available for the idle and/or
-    * timer tasks	to be created.  See the memory management section on the
-    * FreeRTOS web site for more details.  NOTE: This demo uses static allocation
-    * for the idle and timer tasks so this line should never execute. */
-    while(1)
+     * line will never be reached.  If the following line does execute, then
+     * there was insufficient FreeRTOS heap memory available for the idle and/or
+     * timer tasks	to be created.  See the memory management section on the
+     * FreeRTOS web site for more details.  NOTE: This demo uses static allocation
+     * for the idle and timer tasks so this line should never execute. */
+    while( 1 )
     {
     }
 
@@ -353,15 +375,15 @@ int main(void)
  * Dummy implementation of the callback function vApplicationStackOverflowHook().
  */
 #if ( configCHECK_FOR_STACK_OVERFLOW > 0 )
-__WEAK void vApplicationStackOverflowHook( TaskHandle_t xTask,
-                                            char * pcTaskName )
-{
-    ( void ) xTask;
-    ( void ) pcTaskName;
+    __WEAK void vApplicationStackOverflowHook( TaskHandle_t xTask,
+                                               char * pcTaskName )
+    {
+        ( void ) xTask;
+        ( void ) pcTaskName;
 
-    /* Assert when stack overflow is enabled but no application defined function exists */
-    configASSERT( 0 );
-}
+        /* Assert when stack overflow is enabled but no application defined function exists */
+        configASSERT( 0 );
+    }
 #endif
 
 /*---------------------------------------------------------------------------*/
@@ -372,33 +394,33 @@ __WEAK void vApplicationStackOverflowHook( TaskHandle_t xTask,
  * equals to 1 and is required for static memory allocation support.
  */
 
-__WEAK void vApplicationGetIdleTaskMemory( StaticTask_t ** ppxIdleTaskTCBBuffer,
-                                            StackType_t ** ppxIdleTaskStackBuffer,
-                                            uint32_t * pulIdleTaskStackSize )
-{
-    /* Idle task control block and stack */
-    static StaticTask_t Idle_TCB = {0};
-    static StackType_t Idle_Stack[ configMINIMAL_STACK_SIZE ] = {0};
+    __WEAK void vApplicationGetIdleTaskMemory( StaticTask_t ** ppxIdleTaskTCBBuffer,
+                                               StackType_t ** ppxIdleTaskStackBuffer,
+                                               uint32_t * pulIdleTaskStackSize )
+    {
+        /* Idle task control block and stack */
+        static StaticTask_t Idle_TCB = { 0 };
+        static StackType_t Idle_Stack[ configMINIMAL_STACK_SIZE ] = { 0 };
 
-    *ppxIdleTaskTCBBuffer = &Idle_TCB;
-    *ppxIdleTaskStackBuffer = &Idle_Stack[ 0 ];
-    *pulIdleTaskStackSize = ( uint32_t ) configMINIMAL_STACK_SIZE;
-}
+        *ppxIdleTaskTCBBuffer = &Idle_TCB;
+        *ppxIdleTaskStackBuffer = &Idle_Stack[ 0 ];
+        *pulIdleTaskStackSize = ( uint32_t ) configMINIMAL_STACK_SIZE;
+    }
 
 /*
  * vApplicationGetTimerTaskMemory gets called when configSUPPORT_STATIC_ALLOCATION
  * equals to 1 and is required for static memory allocation support.
  */
-__WEAK void vApplicationGetTimerTaskMemory( StaticTask_t ** ppxTimerTaskTCBBuffer,
-                                            StackType_t ** ppxTimerTaskStackBuffer,
-                                            uint32_t * pulTimerTaskStackSize )
-{
-    /* Timer task control block and stack */
-    static StaticTask_t Timer_TCB = {0};
-    static StackType_t Timer_Stack[ configTIMER_TASK_STACK_DEPTH ] = {0};
+    __WEAK void vApplicationGetTimerTaskMemory( StaticTask_t ** ppxTimerTaskTCBBuffer,
+                                                StackType_t ** ppxTimerTaskStackBuffer,
+                                                uint32_t * pulTimerTaskStackSize )
+    {
+        /* Timer task control block and stack */
+        static StaticTask_t Timer_TCB = { 0 };
+        static StackType_t Timer_Stack[ configTIMER_TASK_STACK_DEPTH ] = { 0 };
 
-    *ppxTimerTaskTCBBuffer = &Timer_TCB;
-    *ppxTimerTaskStackBuffer = &Timer_Stack[ 0 ];
-    *pulTimerTaskStackSize = ( uint32_t ) configTIMER_TASK_STACK_DEPTH;
-}
+        *ppxTimerTaskTCBBuffer = &Timer_TCB;
+        *ppxTimerTaskStackBuffer = &Timer_Stack[ 0 ];
+        *pulTimerTaskStackSize = ( uint32_t ) configTIMER_TASK_STACK_DEPTH;
+    }
 #endif /* if ( configSUPPORT_STATIC_ALLOCATION == 1 ) */

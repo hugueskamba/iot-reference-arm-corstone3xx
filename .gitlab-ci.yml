@@ -20,7 +20,7 @@ variables:
 # Those fragments contain base variables required by pipelines for applications.
 # They can be used to set matrix parameters and extended using << : .anchor syntax
 .pipeline_config_applications: &pipeline_config_applications
-  TARGET: [corstone300, corstone310]
+  TARGET: [corstone310]
   TOOLCHAIN: [ARMCLANG, GNU]
 
 stages:
@@ -78,7 +78,7 @@ build-applications:
     - git config --global user.name "ci"
     - ./tools/scripts/build.sh ${APP} --target $TARGET --toolchain $TOOLCHAIN --certificate_path $PWD/certificate.pem  --private_key_path $PWD/private_key.pem
     - |
-      if [ $APP == "aws-iot-example" ];then
+      if [ $APP == "speech-recognition" ];then
         tar -czf ${TARGET}_${APP}_${TOOLCHAIN}_build.tar.gz \
           build/${APP}_merged.elf \
           build/${APP}-update_signed.bin \
@@ -92,7 +92,7 @@ build-applications:
     matrix:
        -
          << : *pipeline_config_applications
-         APP: [blinky, aws-iot-example]
+         APP: [blinky, speech-recognition]
   artifacts:
     paths:
       - ${TARGET}_${APP}_${TOOLCHAIN}_build.tar.gz
@@ -136,7 +136,7 @@ test-ota:
     matrix:
       -
         << : *pipeline_config_applications
-        APP: [aws-iot-example]
+        APP: [speech-recognition]
 
 
 integration-tests:
@@ -165,7 +165,7 @@ integration-tests:
     matrix:
       -
         << : *pipeline_config_applications
-        APP: [aws-iot-example]
+        APP: [speech-recognition]
 
 # The clean up only happens once daily when the `Daily OTA cleanup`
 # scheduled pipeline sets the `SCHEDULED_JOB_TO_RUN` variable to `cleanup`.

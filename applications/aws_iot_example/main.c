@@ -75,14 +75,14 @@ static bool xAreAwsCredentialsValid( void )
     return true;
 }
 
-void OTA_Active_Hook(void)
+void OTA_Active_Hook( void )
 {
-    // This function can be used in case an action is required when the OTA is active
+    /* This function can be used in case an action is required when the OTA is active */
 }
 
-void OTA_Not_Active_Hook(void)
+void OTA_Not_Active_Hook( void )
 {
-    // This function can be used in case an action is required when the OTA is not active
+    /* This function can be used in case an action is required when the OTA is not active */
 }
 
 void vAssertCalled( const char * pcFile,
@@ -198,7 +198,8 @@ int main()
     }
 
     /* Initialise system events group. */
-    if (xEventHelperInit() != 0) {
+    if( xEventHelperInit() != 0 )
+    {
         return EXIT_FAILURE;
     }
 

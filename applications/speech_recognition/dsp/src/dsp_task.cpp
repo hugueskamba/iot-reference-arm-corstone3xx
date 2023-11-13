@@ -1,17 +1,32 @@
-/* Copyright (c) 2023, Arm Limited and Contributors. All rights reserved.
- * SPDX-License-Identifier: Apache-2.0
+/* Copyright 2023 Arm Limited and/or its affiliates
+ * <open-source-office@arm.com>
+ * SPDX-License-Identifier: MIT
  */
 
 #include <stdio.h>
 
+#include "FreeRTOS.h"
 #include "dsp_task.h"
 #include "dsp_interfaces.h"
 #include "model_config.h"
 #include "audio_config.h"
 
-#include "cmsis_os2.h"
+#include "queue.h"
 #include "scheduler.h"
-#include "print_log.h"
+
+/* Include header that defines log levels. */
+#include "logging_levels.h"
+
+extern "C" {
+/* Configure name and log level. */
+#ifndef LIBRARY_LOG_NAME
+    #define LIBRARY_LOG_NAME     "DSP"
+#endif
+#ifndef LIBRARY_LOG_LEVEL
+    #define LIBRARY_LOG_LEVEL    LOG_INFO
+#endif
+#include "logging_stack.h"
+}
 
 #ifdef AUDIO_VSI
 
@@ -112,38 +127,52 @@ static int AudioDrv_Setup(void (*event_handler)(void *), void *event_handler_ptr
 
 #endif // AUDIO_VSI
 
-// This queue is used to wait for the network to start
-// otherwise DSP is starting to read audio from beginning
-// and ML task is starting too late  (after network) and the audio
-// segment to classify has already been processed
-static osMessageQueueId_t dsp_msg_queue = NULL;
+extern QueueHandle_t xDspMsgQueue;
 
 extern "C" {
 
-void dsp_task_start()
+void dsp_task_start(void)
 {
+    if(xDspMsgQueue == NULL)
+    {
+        LogError( ( "xDspMsgQueue is not initialised\r\n" ) );
+        return;
+    }
+
+    LogInfo( ( "DSP task start\r\n" ) );
+
     const dsp_msg_t msg = {DSP_EVENT_START};
-    printf("dsp task start\r\n");
-    osMessageQueuePut(dsp_msg_queue, &msg, /* priority */ 0, /*timeout */ 0);
+    if (xQueueSendToBack(xDspMsgQueue, (void *)&msg, (TickType_t)0) != pdPASS) {
+        LogError( ( "Failed to send message to xDspMsgQueue\r\n" ) );
+    }
 }
 
-void dsp_task_stop()
+void dsp_task_stop(void)
 {
+    if(xDspMsgQueue == NULL)
+    {
+        LogError( ( "xDspMsgQueue is not initialised\r\n" ) );
+        return;
+    }
+
+    LogInfo( ( "DSP task stop\r\n" ) );
+
     const dsp_msg_t msg = {DSP_EVENT_STOP};
-    printf("dsp task stop\r\n");
-    osMessageQueuePut(dsp_msg_queue, &msg, /* priority */ 0, /*timeout */ 0);
+    if (xQueueSendToBack(xDspMsgQueue, (void *)&msg, (TickType_t)0) != pdPASS) {
+        LogError( ( "Failed to send message to xDspMsgQueue\r\n" ) );
+    }
 }
 } // extern "C"
 
-void *getDspMLConnection()
+void *dsp_get_ml_connection(void)
 {
    auto dspMLConnection = new DSPML(AUDIOFEATURELENGTH);
-   return((void*)dspMLConnection);
+   return static_cast<void*>(dspMLConnection);
 }
 
 void dsp_task(void *pvParameters)
 {
-    printf("DSP start\r\n");
+    LogInfo( ( "DSP start\r\n" ) );
 
 #ifdef AUDIO_VSI
     bool first_launch = true;
@@ -159,15 +188,13 @@ void dsp_task(void *pvParameters)
     auto audioSource = DspAudioSource(audioBuf, audioBlockNum);
 #endif
 
-    dsp_msg_queue = osMessageQueueNew(10, sizeof(dsp_msg_t), NULL);
+    DSPML *dspMLConnection = static_cast<DSPML*>(pvParameters);
 
-    DSPML *dspMLConnection = (DSPML*)pvParameters;
-
-    while (1) { 
+    while (1) {
         // Wait for the start message
         while (1) {
             dsp_msg_t msg;
-            if (osMessageQueueGet(dsp_msg_queue, &msg, /* priority */ 0, osWaitForever) == osOK) {
+            if (xQueueReceive (xDspMsgQueue, &msg, portMAX_DELAY) == pdTRUE) {
                 if (msg.event == DSP_EVENT_START) {
                     break;
                 } /* else it's DSP_EVENT_STOP so we keep waiting the loop */
@@ -175,7 +202,7 @@ void dsp_task(void *pvParameters)
         }
 
 #ifdef AUDIO_VSI
-        if (first_launch) { 
+        if (first_launch) {
             AudioDrv_Setup(&DspAudioSource::new_audio_block_received, &audioSource);
             first_launch = false;
         }
@@ -187,7 +214,27 @@ void dsp_task(void *pvParameters)
         // pip install cmsisdsp
         // python graph.py
         int error;
-        uint32_t nbSched=scheduler(&error,&audioSource, dspMLConnection,dsp_msg_queue);
-        printf("Synchronous Dataflow Scheduler ended with error %d after %i schedule loops\r\n",error,nbSched);
+        uint32_t nbSched=scheduler(&error,&audioSource, dspMLConnection,xDspMsgQueue);
+        LogInfo(
+            ( "Synchronous Dataflow Scheduler ended with error %d after %i schedule loops\r\n",
+            error,
+            nbSched
+        ) );
+    }
+}
+
+void vStartDSPTask( void *pvParameters )
+{
+    if (
+        xTaskCreate(
+            dsp_task,
+            "DSP_TASK",
+            appCONFIG_DSP_TASK_STACK_SIZE,
+            pvParameters,
+            appCONFIG_DSP_TASK_PRIORITY,
+            NULL
+        ) != pdPASS
+    ) {
+        LogError( ( "Failed to create DSP Task\r\n" ) );
     }
 }
