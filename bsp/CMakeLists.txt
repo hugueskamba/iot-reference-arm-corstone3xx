@@ -29,6 +29,7 @@ elseif(ARM_CORSTONE_BSP_TARGET_PLATFORM STREQUAL "corstone310")
     set(NS_IMAGE_LOAD_ADDRESS 0x28080000 CACHE STRING "Non-secure user application loading address")
     set(S_PROVISIONING_BUNDLE_LOAD_ADDRESS 0x11022000 CACHE STRING "Secure provisioning bundle loading address")
     set(NS_PROVISIONING_BUNDLE_LOAD_ADDRESS 0x213FF000 CACHE STRING "Non-Secure provisioning bundle loading address")
+    target_compile_definitions(arm-corstone-platform-bsp PUBLIC CORSTONE310_FVP)
 endif()
 
 # BSP serial library
