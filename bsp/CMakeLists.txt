@@ -50,4 +50,5 @@ target_include_directories(fri-bsp
 target_link_libraries(fri-bsp
     PUBLIC
         arm-corstone-platform-bsp
+        freertos_kernel
 )

@@ -9,12 +9,23 @@
 #include "Driver_USART.h"
 #include "bsp_serial.h"
 
+#include "FreeRTOS.h"
+#include "semphr.h"
+
 extern ARM_DRIVER_USART Driver_USART0;
+
+static SemaphoreHandle_t xLoggingMutex = NULL;
 
 void bsp_serial_init( void )
 {
     Driver_USART0.Initialize( NULL );
     Driver_USART0.Control( ARM_USART_MODE_ASYNCHRONOUS, DEFAULT_UART_BAUDRATE );
+
+    if( xLoggingMutex == NULL )
+    {
+        xLoggingMutex = xSemaphoreCreateMutex();
+        configASSERT( xLoggingMutex );
+    }
 }
 
 void bsp_serial_print( char * str )
@@ -133,12 +144,19 @@ void bsp_serial_print( char * str )
                 char * str,
                 int len )
     {
-        if( Driver_USART0.Send( str, len ) == ARM_DRIVER_OK )
+        int lRetVal = 0;
+
+        if( xSemaphoreTake( xLoggingMutex, portMAX_DELAY ) )
         {
-            return len;
+            if( Driver_USART0.Send( str, len ) == ARM_DRIVER_OK )
+            {
+                lRetVal = len;
+            }
         }
 
-        return 0;
+        xSemaphoreGive( xLoggingMutex );
+
+        return lRetVal;
     }
 
 #endif /* if defined( __ARMCOMPILER_VERSION ) */
