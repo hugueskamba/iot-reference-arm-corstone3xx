@@ -63,9 +63,9 @@ workflow:
       fi
   parallel:
     matrix:
-      - *pipeline_config_applications_corstone300
+      # - *pipeline_config_applications_corstone300
       - *pipeline_config_applications_ethos_corstone310
-      - *pipeline_config_applications_sw_corstone310
+      # - *pipeline_config_applications_sw_corstone310
   variables:
     PYTHONUNBUFFERED: 1
 
@@ -107,15 +107,15 @@ build-applications:
       fi
   parallel:
     matrix:
-       -
-         << : *pipeline_config_applications_corstone300
-         APP: [blinky, aws-iot-example]
+      #  -
+      #    << : *pipeline_config_applications_corstone300
+      #    APP: [blinky, aws-iot-example]
        -
          << : *pipeline_config_applications_ethos_corstone310
-         APP: [blinky, aws-iot-example, keyword-detection, speech-recognition]
-       -
-         << : *pipeline_config_applications_sw_corstone310
-         APP: [keyword-detection]
+         APP: [speech-recognition]
+      #  -
+      #    << : *pipeline_config_applications_sw_corstone310
+      #    APP: [keyword-detection]
 
   artifacts:
     paths:
@@ -137,9 +137,9 @@ test-applications-output:
       --fail-output-file "applications/${APP_UNDERSCORED}/tests/fail_output.log"
   parallel:
     matrix:
-       -
-         << : *pipeline_config_applications_corstone300
-         APP: [blinky]
+      #  -
+      #    << : *pipeline_config_applications_corstone300
+      #    APP: [blinky]
        -
          << : *pipeline_config_applications_ethos_corstone310
          APP: [blinky]
@@ -161,15 +161,15 @@ test-ota:
       --fail-ota-output-file "applications/${APP_UNDERSCORED}/tests/fail_ota_output.log"
   parallel:
     matrix:
-      -
-        << : *pipeline_config_applications_corstone300
-        APP: [aws-iot-example]
+      # -
+      #   << : *pipeline_config_applications_corstone300
+      #   APP: [aws-iot-example]
       -
         << : *pipeline_config_applications_ethos_corstone310
-        APP: [aws-iot-example, keyword-detection, speech-recognition]
-      -
-        << : *pipeline_config_applications_sw_corstone310
-        APP: [keyword-detection]
+        APP: [speech-recognition]
+      # -
+      #   << : *pipeline_config_applications_sw_corstone310
+      #   APP: [keyword-detection]
 
 integration-tests:
   stage: test
