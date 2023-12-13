@@ -2,10 +2,14 @@
 # <open-source-office@arm.com>
 # SPDX-License-Identifier: MIT
 
-set(coremqtt_SOURCE_DIR
-    ${CMAKE_CURRENT_LIST_DIR}/library
-    CACHE INTERNAL
-    "Path to coreMQTT source code"
-)
+if(NOT CMAKE_CROSSCOMPILING)
+    add_subdirectory(mocks)
+else()
+    set(coremqtt_SOURCE_DIR
+        ${CMAKE_CURRENT_LIST_DIR}/library
+        CACHE INTERNAL
+        "Path to coreMQTT source code"
+    )
 
-add_subdirectory(integration)
+    add_subdirectory(integration)
+endif()
