@@ -16,4 +16,6 @@ else()
 
     # FreeRTOS must be first as other components depend on it
     add_subdirectory(freertos_kernel)
+
+    add_subdirectory(aws_iot)
 endif()
