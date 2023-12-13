@@ -2,10 +2,15 @@
 # <open-source-office@arm.com>
 # SPDX-License-Identifier: MIT
 
-# FreeRTOS must be first as other components depend on it
-add_subdirectory(freertos_kernel)
+if(CMAKE_CROSSCOMPILING)
+    # FreeRTOS must be first as other components depend on it
+    add_subdirectory(freertos_kernel)
 
-add_subdirectory(aws_iot EXCLUDE_FROM_ALL)
-add_subdirectory(connectivity EXCLUDE_FROM_ALL)
-add_subdirectory(security EXCLUDE_FROM_ALL)
-add_subdirectory(tools EXCLUDE_FROM_ALL)
+    add_subdirectory(aws_iot EXCLUDE_FROM_ALL)
+    add_subdirectory(connectivity EXCLUDE_FROM_ALL)
+    add_subdirectory(security EXCLUDE_FROM_ALL)
+    add_subdirectory(tools EXCLUDE_FROM_ALL)
+else()
+    # Test tools must be available before any component as they are used for unit testing
+    add_subdirectory(tools)
+endif()

@@ -8,5 +8,15 @@ project(iot-reference-arm-corstone3xx LANGUAGES C ASM)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/tools/cmake)
 
-add_subdirectory(bsp)
-add_subdirectory(components EXCLUDE_FROM_ALL)
+if (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
+    include(CTest)
+    include(AddUnitTest)
+endif()
+
+
+if(CMAKE_CROSSCOMPILING)
+    add_subdirectory(bsp)
+    add_subdirectory(components EXCLUDE_FROM_ALL)
+else()
+    add_subdirectory(components)
+endif()

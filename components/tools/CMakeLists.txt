@@ -2,6 +2,11 @@
 # <open-source-office@arm.com>
 # SPDX-License-Identifier: MIT
 
-add_subdirectory(freertos_libraries_integration_tests)
-add_subdirectory(open_iot_sdk_toolchain)
-add_subdirectory(unity)
+if(NOT CMAKE_CROSSCOMPILING)
+    add_subdirectory(fff)
+    add_subdirectory(googletest)
+else()
+    add_subdirectory(freertos_libraries_integration_tests)
+    add_subdirectory(open_iot_sdk_toolchain)
+    add_subdirectory(unity)
+endif()
