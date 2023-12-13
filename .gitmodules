@@ -55,3 +55,9 @@
 [submodule "unity"]
 	path = components/tools/unity/library
 	url = https://github.com/ThrowTheSwitch/Unity.git
+[submodule "fff"]
+	path = components/tools/fff/library
+	url = https://github.com/meekrosoft/fff.git
+[submodule "googletest"]
+	path = components/tools/googletest/library
+	url = https://github.com/google/googletest.git
