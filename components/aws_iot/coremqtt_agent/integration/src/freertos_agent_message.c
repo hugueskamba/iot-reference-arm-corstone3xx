@@ -35,7 +35,6 @@
 
 /* Kernel includes. */
 #include "FreeRTOS.h"
-#include "semphr.h"
 
 /* Header include. */
 #include "core_mqtt_agent_message_interface.h"
