@@ -138,6 +138,15 @@ test-ota:
         << : *pipeline_config_applications
         APP: [aws-iot-example]
 
+unit-tests:
+  extends: .base-job-rules
+  tags:
+    - iotmsw-amd64
+  stage: quality-check
+  script:
+    - cmake -S . -B build_unit_test -GNinja -DOPT_ENABLE_COVERAGE=ON
+    - cmake --build build_unit_test
+    - ctest --test-dir build_unit_test --output-on-failure
 
 integration-tests:
   stage: test
