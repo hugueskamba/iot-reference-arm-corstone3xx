@@ -6,6 +6,10 @@
 #ifndef INC_FREERTOS_H
 #define INC_FREERTOS_H
 
-#define configTICK_RATE_HZ    ( 1000 )
+#include <stdint.h>
+
+#define configTICK_RATE_HZ        ( 1000 )
+
+#define configSTACK_DEPTH_TYPE    uint16_t
 
 #endif

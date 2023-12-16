@@ -3,7 +3,10 @@
 # SPDX-License-Identifier: MIT
 
 add_library(freertos-kernel-mock
+    src/FreeRTOSConfig.c
     src/queue.c
+    src/semphr.c
+    src/task.c
 )
 
 target_include_directories(freertos-kernel-mock

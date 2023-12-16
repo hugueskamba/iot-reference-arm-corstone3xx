@@ -2,10 +2,14 @@
 # <open-source-office@arm.com>
 # SPDX-License-Identifier: MIT
 
-set(trusted_firmware-m_SOURCE_DIR
-    ${CMAKE_CURRENT_LIST_DIR}/library
-    CACHE INTERNAL
-    "Path to Trusted Firmware-M source code"
-)
+if(NOT CMAKE_CROSSCOMPILING)
+    add_subdirectory(mocks)
+else()
+    set(trusted_firmware-m_SOURCE_DIR
+        ${CMAKE_CURRENT_LIST_DIR}/library
+        CACHE INTERNAL
+        "Path to Trusted Firmware-M source code"
+    )
 
 add_subdirectory(integration)
+endif()

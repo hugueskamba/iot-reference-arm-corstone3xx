@@ -54,6 +54,8 @@
 /* Library config includes. */
 #include "ota_config.h"
 
+#include "ota_private.h"
+
 /* Subscription manager header include. */
 #include "subscription_manager.h"
 
@@ -70,6 +72,12 @@
 
 /* Include platform abstraction header. */
 #include "ota_pal.h"
+
+#include "events.h"
+#include "core_mqtt.h"
+#include "core_mqtt_agent.h"
+#include "logging_stack.h"
+#include "FreeRTOSConfig.h"
 
 /*------------- Demo configurations -------------------------*/
 
@@ -534,7 +542,7 @@ static void otaAppCallback( OtaJobEvent_t event,
             }
             else
             {
-                LogError( ( "Failed to set image state as accepted with error %d.", err ) );
+                LogError( ( "Failed to set image state as accepted with error %u.", ( unsigned int ) err ) );
             }
 
             break;
@@ -561,7 +569,7 @@ static void otaAppCallback( OtaJobEvent_t event,
             break;
 
         default:
-            LogWarn( ( "Received an unhandled callback event from OTA Agent, event = %d", event ) );
+            LogWarn( ( "Received an unhandled callback event from OTA Agent, event = %u", ( unsigned int ) event ) );
 
             break;
     }
@@ -781,7 +789,7 @@ static OtaMqttStatus_t prvMQTTSubscribe( const char * pTopicFilter,
     if( mqttStatus != MQTTSuccess )
     {
         LogError( ( "Failed to SUBSCRIBE to topic with error = %u.",
-                    mqttStatus ) );
+                    ( unsigned int ) mqttStatus ) );
         otaRet = OtaMqttSubscribeFailed;
     }
     else
@@ -854,7 +862,7 @@ static OtaMqttStatus_t prvMQTTPublish( const char * const pacTopic,
 
     if( mqttStatus != MQTTSuccess )
     {
-        LogError( ( "Failed to send PUBLISH packet to broker with error = %u.", mqttStatus ) );
+        LogError( ( "Failed to send PUBLISH packet to broker with error = %u.", ( unsigned int ) mqttStatus ) );
         otaRet = OtaMqttPublishFailed;
     }
     else
@@ -926,7 +934,7 @@ static OtaMqttStatus_t prvMQTTUnsubscribe( const char * pTopicFilter,
         LogError( ( "Failed to UNSUBSCRIBE from topic %.*s with error = %u.",
                     topicFilterLength,
                     pTopicFilter,
-                    mqttStatus ) );
+                    ( unsigned int ) mqttStatus ) );
         otaRet = OtaMqttUnsubscribeFailed;
     }
     else
@@ -1009,7 +1017,7 @@ static BaseType_t prvSuspendOTA( void )
     }
     else
     {
-        LogError( ( "Error while trying to suspend OTA agent %d", otaRet ) );
+        LogError( ( "Error while trying to suspend OTA agent %u", ( unsigned int ) otaRet ) );
         status = pdFAIL;
     }
 
@@ -1043,7 +1051,7 @@ static BaseType_t prvResumeOTA( void )
     }
     else
     {
-        LogError( ( "Error while trying to resume OTA agent %d", otaRet ) );
+        LogError( ( "Error while trying to resume OTA agent %u", ( unsigned int ) otaRet ) );
         status = pdFAIL;
     }
 
@@ -1086,7 +1094,7 @@ static BaseType_t prvRunOTADemo( void )
                                  otaAppCallback ) ) != OtaErrNone )
         {
             LogError( ( "Failed to initialize OTA Agent, exiting = %u.",
-                        otaRet ) );
+                        ( unsigned int ) otaRet ) );
 
             xStatus = pdFAIL;
         }

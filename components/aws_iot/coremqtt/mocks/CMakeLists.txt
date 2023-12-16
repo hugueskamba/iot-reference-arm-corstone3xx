@@ -2,15 +2,16 @@
 # <open-source-office@arm.com>
 # SPDX-License-Identifier: MIT
 
-add_library(coremqtt-mock INTERFACE)
+add_library(coremqtt-mock
+    src/core_mqtt.c
+)
 
 target_include_directories(coremqtt-mock
-    INTERFACE
+    PUBLIC
         inc
-        ../integration/inc
 )
 
 target_link_libraries(coremqtt-mock
-    INTERFACE
+    PUBLIC
         fff
 )

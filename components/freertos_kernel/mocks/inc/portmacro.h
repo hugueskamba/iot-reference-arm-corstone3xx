@@ -14,6 +14,8 @@
     typedef unsigned short   UBaseType_t;
     typedef unsigned long    TickType_t;
 
+    #define portMAX_DELAY    ( TickType_t ) 0xffffffffUL
+
     #ifdef __cplusplus
     }
     #endif

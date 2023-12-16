@@ -2,7 +2,9 @@
 # <open-source-office@arm.com>
 # SPDX-License-Identifier: MIT
 
-if(CMAKE_CROSSCOMPILING)
+if(NOT CMAKE_CROSSCOMPILING)
+    add_subdirectory(mocks)
+else()
     set(ota_for_aws_iot_embedded_sdk_SOURCE_DIR
         ${CMAKE_CURRENT_LIST_DIR}/library
         CACHE INTERNAL
@@ -15,6 +17,6 @@ if(CMAKE_CROSSCOMPILING)
         OUTPUT_QUIET
         ERROR_QUIET
     )
-
-    add_subdirectory(integration)
 endif()
+
+add_subdirectory(integration)

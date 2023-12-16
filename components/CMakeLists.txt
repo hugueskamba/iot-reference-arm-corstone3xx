@@ -18,4 +18,5 @@ else()
     add_subdirectory(freertos_kernel)
 
     add_subdirectory(aws_iot)
+    add_subdirectory(security)
 endif()
