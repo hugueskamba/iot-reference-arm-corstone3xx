@@ -150,7 +150,7 @@ extern void vLoggingPrintf( const char * pcFormatString,
  * set to 1 if a valid configuration cannot be obtained from a DHCP server for any
  * reason.  The static configuration used is that passed into the stack by the
  * FreeRTOS_IPInit() function call. */
-#define ipconfigUSE_DHCP                               1
+#define ipconfigUSE_DHCP                               0
 #define ipconfigUSE_DHCP_HOOK                          0
 
 /* When ipconfigUSE_DHCP is set to 1, DHCP requests will be sent out at
