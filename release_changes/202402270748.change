@@ -1,0 +1,2 @@
+ci: Build ML apps in Github Actions
+ci: Remove `aws-iot-example` application building from Github Actions
